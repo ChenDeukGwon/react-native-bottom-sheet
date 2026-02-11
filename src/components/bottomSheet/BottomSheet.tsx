@@ -800,15 +800,19 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
         }
 
         /**
-         * if the keyboard blur behavior is restore and keyboard is hidden,
+         * if the keyboard is hidden and blur behavior is restore (or on Android
+         * with adjustPan where the sheet is in a temporary position),
          * then we return the previous snap point.
          */
         if (
           source === ANIMATION_SOURCE.KEYBOARD &&
-          keyboardBlurBehavior === KEYBOARD_BLUR_BEHAVIOR.restore &&
           keyboardStatus === KEYBOARD_STATUS.HIDDEN &&
           animatedContentGestureState.value !== State.ACTIVE &&
-          animatedHandleGestureState.value !== State.ACTIVE
+          animatedHandleGestureState.value !== State.ACTIVE &&
+          (keyboardBlurBehavior === KEYBOARD_BLUR_BEHAVIOR.restore ||
+            (Platform.OS === 'android' &&
+              android_keyboardInputMode !== KEYBOARD_INPUT_MODE.adjustResize &&
+              isInTemporaryPosition.value))
         ) {
           isInTemporaryPosition.value = false;
           const nextPosition = detents[currentIndex];
@@ -1729,13 +1733,25 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
         }
 
         /**
-         * if new keyboard state is hidden and blur behavior is none, then exit the method
+         * if new keyboard state is hidden and blur behavior is none, then exit the method.
+         *
+         * Exception: On Android with adjustPan mode, there is no container resize
+         * event when the keyboard is dismissed (e.g. via back button). If the sheet
+         * is in a temporary position, we must evaluate the position to restore it.
          */
         if (
           status === KEYBOARD_STATUS.HIDDEN &&
           keyboardBlurBehavior === KEYBOARD_BLUR_BEHAVIOR.none
         ) {
-          return;
+          if (
+            !(
+              Platform.OS === 'android' &&
+              android_keyboardInputMode !== KEYBOARD_INPUT_MODE.adjustResize &&
+              isInTemporaryPosition.value
+            )
+          ) {
+            return;
+          }
         }
 
         const animationConfigs = getKeyboardAnimationConfigs(easing, duration);
@@ -1750,6 +1766,7 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
         animatedKeyboardState,
         animatedLayoutState,
         getEvaluatedPosition,
+        isInTemporaryPosition,
       ]
     );
 
