@@ -714,11 +714,14 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
     const setToPosition = useCallback(
       function setToPosition(targetPosition: number) {
         'worklet';
-        if (!targetPosition) {
+        if (targetPosition === undefined || targetPosition !== targetPosition) {
           return;
         }
 
-        if (targetPosition === animatedPosition.get()) {
+        if (
+          targetPosition === animatedPosition.get() &&
+          !animatedContainerHeightDidChange.value
+        ) {
           return;
         }
 
@@ -1553,11 +1556,28 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
         ) {
           animateToPosition(closedDetentPosition, ANIMATION_SOURCE.GESTURE);
         }
+
+        /**
+         * On Android with adjustResize, when the container grows back after
+         * keyboard dismiss, force evaluate position to avoid race condition
+         * between keyboardDidHide and container resize events.
+         */
+        if (
+          Platform.OS === 'android' &&
+          android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustResize &&
+          previous !== null &&
+          previous !== INITIAL_LAYOUT_VALUE &&
+          result > previous
+        ) {
+          evaluatePosition(ANIMATION_SOURCE.CONTAINER_RESIZE);
+        }
       },
       [
         animatedContainerHeightDidChange,
         animatedAnimationState,
         animatedDetentsState,
+        android_keyboardInputMode,
+        evaluatePosition,
       ]
     );
 

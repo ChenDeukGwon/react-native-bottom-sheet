@@ -14,7 +14,6 @@ import { useBottomSheetInternal } from '../../hooks';
 import type { NullableAccessibilityProps } from '../../types';
 import { animate } from '../../utilities';
 import BottomSheetDraggableView from '../bottomSheetDraggableView';
-import {} from './constants';
 import type { BottomSheetProps } from './types';
 
 type BottomSheetContent = {
@@ -97,8 +96,6 @@ function BottomSheetContentComponent({
         if (!isInTemporaryPosition.get()) {
           break;
         }
-        const contentWithKeyboardHeight =
-          contentHeight + keyboardHeightWithinContainer;
 
         if (keyboardStatus === KEYBOARD_STATUS.SHOWN) {
           if (
@@ -108,10 +105,17 @@ function BottomSheetContentComponent({
             contentHeight =
               containerHeight - keyboardHeightWithinContainer - handleHeight;
           }
-        } else if (contentWithKeyboardHeight + handleHeight > containerHeight) {
-          contentHeight = containerHeight - handleHeight;
         } else {
-          contentHeight = contentWithKeyboardHeight;
+          /**
+           * When keyboard is hidden but sheet is still in temporary position
+           * (e.g. keyboardBlurBehavior="none"), use the actual position-based
+           * height instead of the snap-point based animatedSheetHeight.
+           * This prevents white space at the bottom of the sheet.
+           */
+          contentHeight =
+            containerHeight -
+            animatedPosition.get() -
+            Math.max(0, handleHeight);
         }
         break;
       }
@@ -128,6 +132,7 @@ function BottomSheetContentComponent({
     animatedLayoutState,
     animatedKeyboardState,
     animatedSheetHeight,
+    animatedPosition,
     isInTemporaryPosition,
     keyboardBehavior,
   ]);

@@ -1,6 +1,6 @@
 {
-  "name": "@gorhom/bottom-sheet",
-  "version": "5.2.8",
+  "name": "@mustmove/bottom-sheet",
+  "version": "1.0.0",
   "description": "A performant interactive bottom sheet with fully configurable options 🚀",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -22,13 +22,19 @@
     "reanimated",
     "sheet"
   ],
-  "repository": "https://github.com/gorhom/react-native-bottom-sheet",
-  "author": "Mo Gorhom (https://gorhom.dev)",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/gorhom/react-native-bottom-sheet/issues"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mustmove/react-native-bottom-sheet.git"
   },
-  "homepage": "https://gorhom.dev/react-native-bottom-sheet/",
+  "author": "Mo Gorhom (https://mustmove.dev)",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bugs": {
+    "url": "https://github.com/mustmove/react-native-bottom-sheet/issues"
+  },
+  "homepage": "https://mustmove.dev/react-native-bottom-sheet/",
   "scripts": {
     "typescript": "tsc --skipLibCheck --noEmit",
     "lint": "biome lint --error-on-warnings ./src",
@@ -94,5 +100,8 @@
   },
   "overrides": {
     "conventional-changelog-conventionalcommits": "8.0.0"
+  },
+  "directories": {
+    "example": "example"
   }
 }
