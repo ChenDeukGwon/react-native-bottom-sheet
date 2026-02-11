@@ -850,10 +850,11 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
           keyboardBehavior === KEYBOARD_BEHAVIOR.interactive &&
           keyboardStatus === KEYBOARD_STATUS.SHOWN &&
           // ensure that this logic does not run on android
-          // with resize input mode
+          // with resize or adjustPan input mode
           !(
             Platform.OS === 'android' &&
-            android_keyboardInputMode === 'adjustResize'
+            (android_keyboardInputMode === 'adjustResize' ||
+              android_keyboardInputMode === 'adjustPan')
           )
         ) {
           isInTemporaryPosition.value = true;
@@ -1695,11 +1696,17 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
         }
 
         /**
-         * if platform is android and the input mode is resize, then exit the method
+         * if platform is android and the input mode is resize or adjustPan,
+         * then set heightWithinContainer to 0.
+         *
+         * - adjustResize: container itself resizes, so no manual adjustment needed.
+         * - adjustPan: Android pans the entire window to keep the focused input
+         *   visible, so the sheet should not also adjust its position (double movement).
          */
         if (
           Platform.OS === 'android' &&
-          android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustResize
+          (android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustResize ||
+            android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustPan)
         ) {
           heightWithinContainer = 0;
 
