@@ -178,8 +178,12 @@ export interface BottomSheetProps
   enableBlurKeyboardOnGesture?: boolean;
   /**
    * Defines keyboard input mode for Android only.
+   * - `adjustPan`: Android pans the window (library skips its own keyboard handling).
+   * - `adjustResize`: Android resizes the container (library skips its own keyboard handling).
+   * - `adjustNothing`: Android does nothing; the library handles keyboard offset internally.
+   *   Use this with Edge-to-Edge mode (RN 0.76+) where adjustResize is ignored.
    * @link {https://developer.android.com/guide/topics/manifest/activity-element#wsoft}
-   * @type `adjustPan` | `adjustResize`
+   * @type `adjustPan` | `adjustResize` | `adjustNothing`
    * @default `adjustPan`
    */
   android_keyboardInputMode?: keyof typeof KEYBOARD_INPUT_MODE;

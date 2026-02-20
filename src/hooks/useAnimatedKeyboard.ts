@@ -14,15 +14,34 @@ import {
 import { KEYBOARD_STATUS, SCREEN_HEIGHT } from '../constants';
 import type { KeyboardState } from '../types';
 
+/**
+ * Try to use react-native-keyboard-controller's KeyboardEvents if available.
+ * It uses WindowInsetsAnimation API on Android, which works reliably
+ * in Edge-to-Edge + adjustNothing mode where the standard Keyboard API may not.
+ */
+let KeyboardControllerEvents: {
+  addListener: (name: string, cb: (e: any) => any) => { remove: () => void };
+} | null = null;
+
+try {
+  const rnkc = require('react-native-keyboard-controller');
+  if (rnkc?.KeyboardEvents?.addListener) {
+    KeyboardControllerEvents = rnkc.KeyboardEvents;
+  }
+} catch {}
+
+const useKeyboardControllerEvents = Platform.OS === 'android' && !!KeyboardControllerEvents;
+
 const KEYBOARD_EVENT_MAPPER = {
   KEYBOARD_SHOW: Platform.select({
     ios: 'keyboardWillShow',
-    android: 'keyboardDidShow',
+    // react-native-keyboard-controller supports keyboardWillShow on Android too
+    android: useKeyboardControllerEvents ? 'keyboardWillShow' : 'keyboardDidShow',
     default: '',
   }) as KeyboardEventName,
   KEYBOARD_HIDE: Platform.select({
     ios: 'keyboardWillHide',
-    android: 'keyboardDidHide',
+    android: useKeyboardControllerEvents ? 'keyboardWillHide' : 'keyboardDidHide',
     default: '',
   }) as KeyboardEventName,
 };
@@ -106,6 +125,48 @@ export const useAnimatedKeyboard = () => {
 
   //#region effects
   useEffect(() => {
+    /**
+     * When react-native-keyboard-controller is available (Android),
+     * use its KeyboardEvents which rely on WindowInsetsAnimation API.
+     * This works reliably in Edge-to-Edge + adjustNothing mode.
+     */
+    if (useKeyboardControllerEvents && KeyboardControllerEvents) {
+      const handleOnKeyboardShow = (event: any) => {
+        runOnUI(handleKeyboardEvent)(
+          KEYBOARD_STATUS.SHOWN,
+          event.height,
+          event.duration ?? 250,
+          'keyboard' as KeyboardEventEasing,
+          0
+        );
+      };
+      const handleOnKeyboardHide = (event: any) => {
+        runOnUI(handleKeyboardEvent)(
+          KEYBOARD_STATUS.HIDDEN,
+          event.height,
+          event.duration ?? 250,
+          'keyboard' as KeyboardEventEasing
+        );
+      };
+
+      const showSubscription = KeyboardControllerEvents.addListener(
+        KEYBOARD_EVENT_MAPPER.KEYBOARD_SHOW,
+        handleOnKeyboardShow
+      );
+      const hideSubscription = KeyboardControllerEvents.addListener(
+        KEYBOARD_EVENT_MAPPER.KEYBOARD_HIDE,
+        handleOnKeyboardHide
+      );
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }
+
+    /**
+     * Fallback: standard Keyboard API (iOS, or Android without keyboard-controller)
+     */
     const handleOnKeyboardShow = (event: KeyboardEvent) => {
       runOnUI(handleKeyboardEvent)(
         KEYBOARD_STATUS.SHOWN,

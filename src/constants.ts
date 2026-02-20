@@ -116,6 +116,7 @@ const KEYBOARD_BLUR_BEHAVIOR = {
 const KEYBOARD_INPUT_MODE = {
   adjustPan: 'adjustPan',
   adjustResize: 'adjustResize',
+  adjustNothing: 'adjustNothing',
 } as const;
 
 const KEYBOARD_DISMISS_THRESHOLD = 12.5;
