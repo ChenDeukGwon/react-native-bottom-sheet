@@ -1,6 +1,6 @@
 {
   "name": "@mustmove/bottom-sheet",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A performant interactive bottom sheet with fully configurable options 🚀",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
