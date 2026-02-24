@@ -860,7 +860,7 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
           isInTemporaryPosition.value = true;
           const keyboardHeightInContainer =
             animatedKeyboardState.get().heightWithinContainer;
-          return Math.max(0, highestDetentPosition - keyboardHeightInContainer - 50);
+          return Math.max(0, highestDetentPosition - keyboardHeightInContainer - 48);
         }
 
         /**
