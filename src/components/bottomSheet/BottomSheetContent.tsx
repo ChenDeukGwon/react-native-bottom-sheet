@@ -9,6 +9,7 @@ import {
   INITIAL_LAYOUT_VALUE,
   KEYBOARD_BEHAVIOR,
   KEYBOARD_STATUS,
+  SCROLLABLE_TYPE,
 } from '../../constants';
 import { useBottomSheetInternal } from '../../hooks';
 import type { NullableAccessibilityProps } from '../../types';
@@ -50,13 +51,14 @@ function BottomSheetContentComponent({
     animatedDetentsState,
     animatedSheetHeight,
     animatedKeyboardState,
+    animatedScrollableState,
     isInTemporaryPosition,
   } = useBottomSheetInternal();
   //#endregion
 
   //#region variables
   const animatedContentHeightMax = useDerivedValue(() => {
-    const { containerHeight, handleHeight } = animatedLayoutState.get();
+    const { containerHeight, handleHeight, contentHeight: measuredContentHeight } = animatedLayoutState.get();
 
     /**
      * if container height is not yet calculated, then we exit the method
@@ -122,6 +124,21 @@ function BottomSheetContentComponent({
     }
 
     /**
+     * When the keyboard is shown and the content is non-scrollable (VIEW type),
+     * ensure the content height doesn't shrink below the measured content height.
+     * This prevents clipping of fixed-layout content (e.g. buttons at the bottom)
+     * when the container shrinks on Android with adjustResize.
+     */
+    if (
+      keyboardStatus === KEYBOARD_STATUS.SHOWN &&
+      measuredContentHeight !== INITIAL_LAYOUT_VALUE &&
+      animatedScrollableState.get().type === SCROLLABLE_TYPE.VIEW &&
+      contentHeight < measuredContentHeight
+    ) {
+      contentHeight = measuredContentHeight;
+    }
+
+    /**
      * before the container is measured, `contentHeight` value will be below zero,
      * which will lead to freeze the scrollable.
      *
@@ -132,6 +149,7 @@ function BottomSheetContentComponent({
     animatedLayoutState,
     animatedKeyboardState,
     animatedSheetHeight,
+    animatedScrollableState,
     animatedPosition,
     isInTemporaryPosition,
     keyboardBehavior,
