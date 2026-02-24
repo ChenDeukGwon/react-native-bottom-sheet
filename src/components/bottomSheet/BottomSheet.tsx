@@ -1702,12 +1702,32 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
          * - adjustResize: container itself resizes, so no manual adjustment needed.
          * - adjustPan: Android pans the entire window to keep the focused input
          *   visible, so the sheet should not also adjust its position (double movement).
+         *
+         * Exception: adjustPan + interactive keeps the real heightWithinContainer
+         * so that paddingBottom is applied to the content, allowing users to scroll
+         * past the keyboard-covered area. The sheet position is still not moved
+         * (evaluatePosition is skipped) to avoid double movement with OS panning.
          */
         if (
           Platform.OS === 'android' &&
           (android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustResize ||
             android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustPan)
         ) {
+          if (
+            android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustPan &&
+            keyboardBehavior === KEYBOARD_BEHAVIOR.interactive
+          ) {
+            animatedKeyboardState.set({
+              target,
+              status,
+              height,
+              easing,
+              duration,
+              heightWithinContainer,
+            });
+            return;
+          }
+
           heightWithinContainer = 0;
 
           if (keyboardBehavior === KEYBOARD_BEHAVIOR.interactive) {
