@@ -1704,9 +1704,10 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
          *   visible, so the sheet should not also adjust its position (double movement).
          *
          * Exception: adjustPan + interactive keeps the real heightWithinContainer
-         * so that paddingBottom is applied to the content, allowing users to scroll
-         * past the keyboard-covered area. The sheet position is still not moved
-         * (evaluatePosition is skipped) to avoid double movement with OS panning.
+         * and sets isInTemporaryPosition so that BottomSheetContent reduces
+         * content height and adds paddingBottom for the keyboard area.
+         * The sheet position is still not moved (evaluatePosition is skipped)
+         * to avoid double movement with OS panning.
          */
         if (
           Platform.OS === 'android' &&
@@ -1717,6 +1718,8 @@ const BottomSheetComponent = forwardRef<BottomSheet, BottomSheetProps>(
             android_keyboardInputMode === KEYBOARD_INPUT_MODE.adjustPan &&
             keyboardBehavior === KEYBOARD_BEHAVIOR.interactive
           ) {
+            isInTemporaryPosition.value =
+              status === KEYBOARD_STATUS.SHOWN;
             animatedKeyboardState.set({
               target,
               status,
